@@ -3,6 +3,7 @@
 
 from cog import BasePredictor, Input, Path
 from diffusers import (
+    StableDiffusionXLInpaintPipeline,
     StableDiffusionXLImg2ImgPipeline,
     DDIMScheduler,
     DPMSolverMultistepScheduler,
@@ -45,7 +46,7 @@ def get_image(path):
 class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
-        pipeline = StableDiffusionXLImg2ImgPipeline.from_pretrained(
+        pipeline = StableDiffusionXLInpaintPipeline.from_pretrained(
             SDXL_MODEL_CACHE,
             torch_dtype=torch.float16,
             variant="fp16",
@@ -97,6 +98,14 @@ class Predictor(BasePredictor):
             choices=SCHEDULERS.keys(),
             default="DPMSolverMultistep",
         ),
+        width: int = Input(
+            description="Width of output image",
+            default=512,
+        ),
+        height: int = Input(
+            description="Height of output image",
+            default=512,
+        ),
     ) -> Path:
         """Run a single prediction on the model"""
         if seed is None:
@@ -105,14 +114,19 @@ class Predictor(BasePredictor):
         print(f"Using seed: {seed}")
 
         self.__pipe.scheduler = SCHEDULERS[scheduler].from_config(self.__pipe.scheduler.config)
+        print(f"desired height and width of the generated image: {height}x{width}")
+
         images = self.__pipe(
             prompt=prompt,
             negative_prompt=negative_prompt,
             image=get_image(image),
+            mask_image=get_image('mask.png'),
             guidance_scale=guidance_scale,
             num_inference_steps=num_inference_steps,
             strength=prompt_strength,
             generator=generator,
+            height=height,
+            width=width,
         ).images
 
         output_path = f"/tmp/out.png"
