@@ -4,7 +4,6 @@
 from cog import BasePredictor, Input, Path
 from diffusers import (
     StableDiffusionXLInpaintPipeline,
-    StableDiffusionXLImg2ImgPipeline,
     DDIMScheduler,
     DPMSolverMultistepScheduler,
     EulerAncestralDiscreteScheduler,
@@ -52,6 +51,7 @@ class Predictor(BasePredictor):
             variant="fp16",
             use_safetensors=True,
         ).to("cuda")
+        # PUT the LORA model into memory
         lora_model_path = ""
         pipeline.load_lora_weights(".", weight_name = lora_model_path)
         self.__pipe = pipeline

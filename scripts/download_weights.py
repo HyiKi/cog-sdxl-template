@@ -5,6 +5,7 @@
 import torch
 from diffusers import StableDiffusionPipeline
 
+# PUT the SDXL model into memory
 SDXL_MODEL_CACHE = ""
 
 pipe = StableDiffusionPipeline.from_single_file(
